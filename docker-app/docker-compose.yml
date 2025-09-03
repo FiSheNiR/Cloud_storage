@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:14.8
+    container_name: cloud_docker_compose
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: cloud
+      POSTGRES_PASSWORD: cloud
+      POSTGRES_DB: cloud
+    volumes:
+      - postgres_data_cloud:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass 123
+    restart: unless-stopped
+
+
+volumes:
+  postgres_data_cloud:
