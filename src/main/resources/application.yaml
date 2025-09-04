@@ -1,5 +1,4 @@
 spring:
-
   datasource:
     username: cloud
     password: cloud
@@ -19,13 +18,16 @@ spring:
     type: redis
 
   session:
-    timeout: 1h
-    redis:
-      flush-mode: on_save
-      namespace: spring:session
+    timeout: 10m
 
   data:
     redis:
       host: localhost
       port: 6379
       password: 123
+
+logging:
+  level:
+    org.springframework.data.redis: DEBUG
+    org.springframework.session: DEBUG
+    org.springframework.security: DEBUG

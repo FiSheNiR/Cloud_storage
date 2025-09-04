@@ -1,5 +1,8 @@
 package org.example.cloud_storage.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.example.cloud_storage.dto.UserRequestDto;
 import org.example.cloud_storage.dto.UserResponseDto;
@@ -25,8 +28,8 @@ public class AuthController {
 
     @PostMapping("sign-in")
     @ResponseStatus(HttpStatus.OK)
-    public UserResponseDto signIn(@RequestBody UserRequestDto userRequestDto) {
-        return userService.login(userRequestDto);
+    public UserResponseDto signIn(@RequestBody UserRequestDto userRequestDto, HttpServletRequest request, HttpServletResponse response) {
+        return userService.login(userRequestDto, request,response);
     }
 
     @PostMapping("sign-out")
