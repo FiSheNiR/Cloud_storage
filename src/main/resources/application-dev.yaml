@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    username: cloud
+    password: cloud
+    url: jdbc:postgresql://localhost:5434/cloud
+    driver-class-name: org.postgresql.Driver
+
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+
+  session:
+    timeout: 10m
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 123
+
+minio:
+  url: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin

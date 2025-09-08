@@ -22,11 +22,13 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final SecurityContextHolderStrategy securityContext;
     private final AuthenticationService authenticationService;
+    private final MinioService minioService;
 
     public UserResponseDto register(UserRequestDto userRequestDto) {
         User user = userMapper.toEntity(userRequestDto);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
+        minioService.createUserBucket(user.getUsername());
         return userMapper.toResponseDto(user);
     }
 
