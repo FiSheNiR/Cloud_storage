@@ -55,7 +55,7 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form.loginProcessingUrl("api/auth/sign-in"))
-                .logout(logout -> logout.logoutUrl("/api/logout")
+                .logout(logout -> logout.logoutUrl("/api/auth/sign-out")
                         .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT)))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
