@@ -21,6 +21,10 @@ public class PathUtil {
         return path.substring(0, lastSlashIndex + 1);
     }
 
+    public static boolean isDirectory(String path) {
+        return path.endsWith("/");
+    }
+
     public static String getFileName(String fullPath) {
         if (fullPath == null || fullPath.isEmpty()) {
             return "";

@@ -34,11 +34,12 @@ public class MinioService {
         }
     }
 
-    public Iterable<Result<Item>> directoryInfo(String path, String userName){
+    public Iterable<Result<Item>> directoryInfo(String path, String userName, boolean recursive){
         try {
             return minioClient.listObjects(ListObjectsArgs.builder()
                     .bucket(userName)
                     .prefix(path)
+                    .recursive(recursive)
                     .build());
         } catch (Exception e) {
             throw new RuntimeException(e);
