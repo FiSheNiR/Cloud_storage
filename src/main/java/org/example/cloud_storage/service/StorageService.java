@@ -13,9 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -27,7 +25,16 @@ public class StorageService {
 
     private final MinioService minioService;
 
-    public void downloadFile(String path, HttpServletResponse response, String username) {
+    public void downloadResource(String path, HttpServletResponse response, String username) {
+        String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8);
+        if (decodedPath.endsWith("/")) {
+            downloadDirectory(decodedPath, response, username);
+        } else {
+            downloadFile(decodedPath, response, username);
+        }
+    }
+
+    private void downloadFile(String path, HttpServletResponse response, String username) {
         try {
             InputStream inputStream = minioService.getResource(path, username);
             response.setContentType("application/octet-stream");
@@ -37,7 +44,7 @@ public class StorageService {
         }
     }
 
-    public void downloadDirectory(String path, HttpServletResponse response, String username) {
+    private void downloadDirectory(String path, HttpServletResponse response, String username) {
 
         response.setContentType("application/zip");
 
@@ -70,6 +77,36 @@ public class StorageService {
         }
     }
 
+    public ResourceResponseDto moveResource(String sourcePath, String targetPath, String username) {
+        if (PathUtil.isDirectory(sourcePath)) {
+            return moveDirectory(sourcePath, targetPath, username);
+        } else {
+            return moveFile(sourcePath, targetPath, username);
+        }
+    }
+
+    private ResourceResponseDto moveFile(String sourcePath, String targetPath, String username) {
+        minioService.copyObject(sourcePath, targetPath, username);
+        minioService.deleteResource(sourcePath, username);
+        Long size = minioService.fileInfo(targetPath, username);
+        return fileResponseDto(targetPath, size);
+    }
+
+    private ResourceResponseDto moveDirectory(String sourcePath, String targetPath, String username) {
+        Iterable<Result<Item>> minioResults = minioService.directoryInfo(sourcePath, username, true);
+        for (Result<Item> result : minioResults) {
+            try {
+                Item item = result.get();
+                String objectName = item.objectName();
+                String newObjectName = targetPath + PathUtil.getFileName(objectName);
+                minioService.copyObject(objectName, newObjectName, username);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        deleteResource(sourcePath, username);
+        return directoryResponseDto(targetPath);
+    }
     public void deleteResource(String path, String username) {
         if (path.endsWith("/")) {
             Iterable<Result<Item>> items = minioService.directoryInfo(path, username, false);
@@ -113,13 +150,7 @@ public class StorageService {
 
     public ResourceResponseDto createDirectory(String path, String username) {
         minioService.createDirectory(path, username);
-        String parentPath = PathUtil.getParentPath(path);
-        String fileName = PathUtil.getFileName(path);
-        return ResourceResponseDto.builder()
-                .name(fileName+"/")
-                .path(parentPath)
-                .type("DIRECTORY")
-                .build();
+        return directoryResponseDto(path);
     }
 
     public ResourceResponseDto getResourceInfo(String encodedPath, String username) {
@@ -160,5 +191,24 @@ public class StorageService {
         return result;
     }
 
+    private ResourceResponseDto fileResponseDto(String path, Long size) {
+        String parentPath = PathUtil.getParentPath(path);
+        String fileName = PathUtil.getFileName(path);
+        return ResourceResponseDto.builder()
+                .name(fileName)
+                .size(size)
+                .path(parentPath)
+                .type("FILE")
+                .build();
+    }
 
+    private ResourceResponseDto directoryResponseDto(String path) {
+        String parentPath = PathUtil.getParentPath(path);
+        String fileName = PathUtil.getFileName(path);
+        return ResourceResponseDto.builder()
+                .name(fileName+"/")
+                .path(parentPath)
+                .type("DIRECTORY")
+                .build();
+    }
 }

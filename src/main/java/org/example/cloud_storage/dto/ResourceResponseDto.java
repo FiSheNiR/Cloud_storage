@@ -1,8 +1,6 @@
 package org.example.cloud_storage.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter

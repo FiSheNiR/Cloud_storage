@@ -75,6 +75,20 @@ public class MinioService {
         }
     }
 
+    public void copyObject(String sourcePath, String targetPath, String userName) {
+        try {
+            CopySource copySource = CopySource.builder().bucket(userName).object(sourcePath).build();
+
+            minioClient.copyObject(CopyObjectArgs.builder()
+                    .bucket(userName)
+                    .object(targetPath)
+                    .source(copySource)
+                    .build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void uploadResource(String path, String userName, InputStream inputStream, String contentType, long size) {
         try {
             minioClient.putObject(PutObjectArgs.builder()

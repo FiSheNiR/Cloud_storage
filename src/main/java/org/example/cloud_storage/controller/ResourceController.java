@@ -30,13 +30,13 @@ public class ResourceController {
     @GetMapping("/download")
     @ResponseStatus(HttpStatus.OK)
     public void downloadResource(@RequestParam String path, HttpServletResponse response, @AuthenticationPrincipal UserDetails user) {
-        String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8);
+        storageService.downloadResource(path, response, user.getUsername());
+    }
 
-        if (decodedPath.endsWith("/")) {
-            storageService.downloadDirectory(decodedPath, response, user.getUsername());
-        } else {
-            storageService.downloadFile(decodedPath, response, user.getUsername());
-        }
+    @GetMapping("/move")
+    @ResponseStatus(HttpStatus.OK)
+    public ResourceResponseDto moveResource(@RequestParam String from, @RequestParam String to, @AuthenticationPrincipal UserDetails user) {
+        return storageService.moveResource(from, to, user.getUsername());
     }
 
     @DeleteMapping
