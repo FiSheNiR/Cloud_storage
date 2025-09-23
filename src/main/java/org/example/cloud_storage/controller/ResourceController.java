@@ -39,6 +39,12 @@ public class ResourceController {
         return storageService.moveResource(from, to, user.getUsername());
     }
 
+    @GetMapping("/search")
+    @ResponseStatus(HttpStatus.OK)
+    public List<ResourceResponseDto> searchResource(@RequestParam String query, @AuthenticationPrincipal UserDetails user) {
+        return storageService.searchResources(query, user.getUsername());
+    }
+
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteResourceInfo(@RequestParam String path, @AuthenticationPrincipal UserDetails user) {

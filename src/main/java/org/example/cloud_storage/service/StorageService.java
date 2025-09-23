@@ -15,7 +15,9 @@ import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -24,6 +26,32 @@ import java.util.zip.ZipOutputStream;
 public class StorageService {
 
     private final MinioService minioService;
+
+    public List<ResourceResponseDto> searchResources(String encodedQuery, String username) {
+        String query = URLDecoder.decode(encodedQuery, StandardCharsets.UTF_8);
+        List<ResourceResponseDto> results = new ArrayList<>();
+        Iterable<Result<Item>> items = minioService.directoryInfo("", username, true);
+        for (Result<Item> result : items) {
+            try {
+                Item item = result.get();
+                String objectName = item.objectName();
+                System.out.println(objectName);
+                String name = PathUtil.getFileName(objectName);
+                if (!name.toLowerCase().contains(query.toLowerCase())) {
+                    continue;
+                }
+                if (PathUtil.isDirectory(objectName)) {
+                    results.add(directoryResponseDto(objectName));
+                } else if (item.size() > 1){
+                    results.add(fileResponseDto(objectName, username));
+                }
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return results;
+    }
 
     public void downloadResource(String path, HttpServletResponse response, String username) {
         String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8);
@@ -88,8 +116,7 @@ public class StorageService {
     private ResourceResponseDto moveFile(String sourcePath, String targetPath, String username) {
         minioService.copyObject(sourcePath, targetPath, username);
         minioService.deleteResource(sourcePath, username);
-        Long size = minioService.fileInfo(targetPath, username);
-        return fileResponseDto(targetPath, size);
+        return fileResponseDto(targetPath, username);
     }
 
     private ResourceResponseDto moveDirectory(String sourcePath, String targetPath, String username) {
@@ -107,6 +134,7 @@ public class StorageService {
         deleteResource(sourcePath, username);
         return directoryResponseDto(targetPath);
     }
+
     public void deleteResource(String path, String username) {
         if (path.endsWith("/")) {
             Iterable<Result<Item>> items = minioService.directoryInfo(path, username, false);
@@ -130,11 +158,13 @@ public class StorageService {
 
     public List<ResourceResponseDto> uploadResource(String path, List<MultipartFile> files, String username) {
         List<ResourceResponseDto> uploadedResources = new ArrayList<>();
+        Set<String> createdDirs = new HashSet<>();
         try {
             for (MultipartFile file : files) {
                 InputStream inputStream = file.getInputStream();
-                String filePath = path + file.getOriginalFilename();
-                minioService.uploadResource(filePath, username, inputStream, file.getContentType(), file.getSize());
+                String objectName = path + file.getOriginalFilename();
+                createParentDirs(objectName,username,createdDirs);
+                minioService.uploadResource(objectName, username, inputStream, file.getContentType(), file.getSize());
                 uploadedResources.add(ResourceResponseDto.builder()
                         .name(file.getOriginalFilename())
                         .size(file.getSize())
@@ -146,6 +176,23 @@ public class StorageService {
             throw new RuntimeException(e);
         }
         return uploadedResources;
+    }
+
+    private void createParentDirs(String fullPath, String username, Set<String> createdDirs) {
+        if (!fullPath.contains("/")) {
+            return;
+        }
+        int lastSlashIndex = fullPath.lastIndexOf('/');
+        String dirPath = fullPath.substring(0, lastSlashIndex + 1);
+        if (createdDirs.contains(dirPath)) {
+            return;
+        }
+        String parentPath = PathUtil.getParentPath(dirPath);
+        if (!parentPath.isEmpty() && !parentPath.equals(dirPath)) {
+            createParentDirs(parentPath, username, createdDirs);
+        }
+        minioService.createDirectory(dirPath, username);
+        createdDirs.add(dirPath);
     }
 
     public ResourceResponseDto createDirectory(String path, String username) {
@@ -191,9 +238,10 @@ public class StorageService {
         return result;
     }
 
-    private ResourceResponseDto fileResponseDto(String path, Long size) {
+    private ResourceResponseDto fileResponseDto(String path, String username) {
         String parentPath = PathUtil.getParentPath(path);
         String fileName = PathUtil.getFileName(path);
+        Long size = minioService.fileInfo(path, username);
         return ResourceResponseDto.builder()
                 .name(fileName)
                 .size(size)

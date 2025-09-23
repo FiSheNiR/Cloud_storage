@@ -2,15 +2,11 @@ package org.example.cloud_storage.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.example.cloud_storage.dto.UserRequestDto;
 import org.example.cloud_storage.dto.UserResponseDto;
-import org.example.cloud_storage.model.User;
 import org.example.cloud_storage.service.UserService;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
