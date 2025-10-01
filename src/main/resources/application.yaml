@@ -6,3 +6,8 @@ spring:
       enabled: true
       max-file-size: 10MB
       max-request-size: 100MB
+
+springdoc:
+  default-produces-media-type: application/json
+  use-management-port: false
+  override-with-generic-response: false
