@@ -1,6 +1,15 @@
 package org.example.cloud_storage.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.example.cloud_storage.controller.swagger.DirectorySwagger;
 import org.example.cloud_storage.dto.ResourceResponseDto;
 import org.example.cloud_storage.service.StorageService;
 import org.springframework.http.HttpStatus;
@@ -13,7 +22,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/directory")
-public class DirectoryController {
+public class DirectoryController implements DirectorySwagger {
 
     private final StorageService storageService;
 

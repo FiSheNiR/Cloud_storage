@@ -2,14 +2,18 @@ package org.example.cloud_storage.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.example.cloud_storage.controller.swagger.ResourceSwagger;
 import org.example.cloud_storage.dto.ResourceResponseDto;
 import org.example.cloud_storage.service.StorageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -17,7 +21,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/resource")
-public class ResourceController {
+public class ResourceController implements ResourceSwagger {
 
     private final StorageService storageService;
 
@@ -30,7 +34,19 @@ public class ResourceController {
     @GetMapping("/download")
     @ResponseStatus(HttpStatus.OK)
     public void downloadResource(@RequestParam String path, HttpServletResponse response, @AuthenticationPrincipal UserDetails user) {
-        storageService.downloadResource(path, response, user.getUsername());
+        String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8);
+        InputStream resource = storageService.downloadResource(decodedPath, user.getUsername());
+        if (decodedPath.endsWith("/")) {
+            response.setContentType("application/octet-stream");
+        }
+        else {
+            response.setContentType("application/zip");
+        }
+        try {
+            StreamUtils.copy(resource, response.getOutputStream());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @GetMapping("/move")
