@@ -4,9 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.cloud_storage.dto.ResourceResponseDto;
 import org.example.cloud_storage.mapper.ResponseDtoMapper;
 import org.example.cloud_storage.service.storage.*;
-import org.example.cloud_storage.util.PathUtil;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
@@ -30,12 +28,8 @@ public class StorageService {
     }
 
     public InputStream downloadResource(String encodedPath, String username) {
-        try {
-            String path = URLDecoder.decode(encodedPath, StandardCharsets.UTF_8);
-            return downloadService.downloadResource(path, username);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        String path = URLDecoder.decode(encodedPath, StandardCharsets.UTF_8);
+        return downloadService.downloadResource(path, username);
     }
 
     public ResourceResponseDto moveResource(String sourcePath, String targetPath, String username) {
