@@ -44,8 +44,6 @@ public class StorageService {
         return uploadService.uploadResource(path, files, username);
     }
 
-
-
     public ResourceResponseDto createDirectory(String path, String username) {
         minioService.createDirectory(path, username);
         return ResponseDtoMapper.toDirectoryResponseDto(path);

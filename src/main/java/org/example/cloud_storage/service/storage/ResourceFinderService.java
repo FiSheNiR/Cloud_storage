@@ -4,6 +4,7 @@ import io.minio.Result;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import org.example.cloud_storage.dto.ResourceResponseDto;
+import org.example.cloud_storage.exception.NotFoundException;
 import org.example.cloud_storage.mapper.ResponseDtoMapper;
 import org.example.cloud_storage.service.MinioService;
 import org.example.cloud_storage.util.PathUtil;
@@ -58,7 +59,6 @@ public class ResourceFinderService {
             try {
                 Item item = result.get();
                 String objectName = item.objectName();
-                System.out.println(objectName);
                 String name = PathUtil.getFileName(objectName);
                 if (!name.toLowerCase().contains(query.toLowerCase())) {
                     continue;
@@ -72,6 +72,9 @@ public class ResourceFinderService {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        }
+        if (results.isEmpty()){
+            throw new NotFoundException("Ресурс не найден");
         }
         return results;
     }

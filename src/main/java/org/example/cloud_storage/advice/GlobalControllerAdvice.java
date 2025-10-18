@@ -2,6 +2,7 @@ package org.example.cloud_storage.advice;
 
 import lombok.extern.slf4j.Slf4j;
 import org.example.cloud_storage.dto.ErrorResponseDto;
+import org.example.cloud_storage.exception.NotFoundException;
 import org.example.cloud_storage.exception.UnautorizedException;
 import org.example.cloud_storage.exception.UserAlreadyExistsException;
 import org.example.cloud_storage.exception.ValidationException;
@@ -11,6 +12,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -19,6 +22,12 @@ public class GlobalControllerAdvice {
     @ExceptionHandler(ValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponseDto handleValidationException(ValidationException e) {
+        return new ErrorResponseDto(e.getMessage());
+    }
+
+    @ExceptionHandler({NotFoundException.class, NoHandlerFoundException.class, NoResourceFoundException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponseDto handleNotFoundException(NotFoundException e) {
         return new ErrorResponseDto(e.getMessage());
     }
 
@@ -50,6 +59,6 @@ public class GlobalControllerAdvice {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponseDto handleException(Exception e) {
         log.error(e.getMessage(), e);
-        return new ErrorResponseDto("Internal Server Error in Exception Handler");
+        return new ErrorResponseDto("Internal Server Error");
     }
 }
