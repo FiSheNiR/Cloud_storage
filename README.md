@@ -4,6 +4,12 @@
 
 ## Техническое задание: [Облачное хранилище файлов](https://zhukovsd.github.io/java-backend-learning-course/projects/cloud-file-storage/)
 
+# Задеплоенное приложение
+
+http://176.108.249.132:8080/
+
+Swagger: http://176.108.249.132:8080/swagger-ui/index.html#/
+
 # Инструкция по запуску
 
 1. Установите Docker и запустите его.
